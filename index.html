@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Analyzer</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: "Arial", sans-serif;
+            background-color: #0d1117;
+            color: #e6edf3;
+            text-align: center;
+            padding: 30px;
+        }
+        h1 {
+            color: #4CAF50;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 16px;
+            color: #b3b3b3;
+        }
+
+        /* Input Field */
+        .input-container {
+            margin-top: 20px;
+        }
+        input {
+            width: 340px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            background-color: #22272e;
+            color: white;
+            transition: 0.3s;
+        }
+        input:focus {
+            background-color: #2d333b;
+        }
+
+        /* Button */
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        /* Table Styles */
+        .table-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        table {
+            width: 80%;
+            max-width: 700px;
+            border-collapse: collapse;
+            background-color: #161b22;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.4s ease-in-out;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+            color: #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🔐 Password Strength Analyzer</h1>
+    <p>Enter a password to analyze its strength and get a suggested improvement.</p>
+
+    <div class="input-container">
+        <input type="text" id="passwordInput" placeholder="Enter password..." oninput="analyzePassword()">
+        <button onclick="analyzePassword()">Analyze</button>
+    </div>
+
+    <div class="table-container">
+        <table id="resultTable">
+            <tr>
+                <th>Criteria</th>
+                <th>Your Password</th>
+                <th>Suggested Password</th>
+            </tr>
+            <tr>
+                <td>Password</td>
+                <td id="originalPassword">-</td>
+                <td id="suggestedPassword">-</td>
+            </tr>
+            <tr>
+                <td>Strength</td>
+                <td id="originalStrength">-</td>
+                <td id="suggestedStrength">-</td>
+            </tr>
+            <tr>
+                <td>Entropy Score</td>
+                <td id="originalEntropy">-</td>
+                <td id="suggestedEntropy">-</td>
+            </tr>
+            <tr>
+                <td>Time to Crack</td>
+                <td id="originalCrackTime">-</td>
+                <td id="suggestedCrackTime">-</td>
+            </tr>
+            <tr>
+                <td>Improvement Note</td>
+                <td colspan="2" id="improvementNote">-</td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+        async function analyzePassword() {
+            let password = document.getElementById("passwordInput").value.trim();
+            let resultTable = document.getElementById("resultTable");
+
+            if (!password) {
+                resultTable.classList.remove("visible");
+                return;
+            }
+
+            let response = await fetch("http://127.0.0.1:8000/analyze-password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ password: password })
+            });
+
+            if (!response.ok) {
+                alert("Error analyzing password. Try again!");
+                return;
+            }
+
+            let data = await response.json();
+            resultTable.classList.add("visible");
+
+            document.getElementById("originalPassword").textContent = data.password;
+            document.getElementById("suggestedPassword").textContent = data.suggested_password;
+
+            document.getElementById("originalStrength").textContent = data.strength;
+            document.getElementById("suggestedStrength").textContent = data.suggested_strength;
+
+            document.getElementById("originalEntropy").textContent = data.entropy;
+            document.getElementById("suggestedEntropy").textContent = data.suggested_entropy;
+
+            document.getElementById("originalCrackTime").textContent = data.time_to_crack;
+            document.getElementById("suggestedCrackTime").textContent = data.suggested_time_to_crack;
+
+            document.getElementById("improvementNote").textContent = data.improvement_note;
+        }
+    </script>
+
+</body>
+</html>
